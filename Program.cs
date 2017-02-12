@@ -17,14 +17,15 @@ namespace Validator {
                                     .Build();
             
 
+            
         }
     }
 
     public class CommonValidator<TSource> {
 
-        private IList<Predicate<TSource>> rules;
+        private IList<BaseRule<TSource>> rules;
 
-        internal CommonValidator(IList<Predicate<TSource>> predicates) {
+        internal CommonValidator(IList<BaseRule<TSource>> predicates) {
             this.rules = predicates;
         } 
         
@@ -43,21 +44,49 @@ namespace Validator {
             return this;
         }
 
+        private IEnumerable<BaseRule<TSource>> GetRules() {
+            foreach (var predicate in predicates) {
+                yield return new SimpleRule<TSource>(predicate);
+            }
+        }
+
         public CommonValidator<TSource> Build() {
-            return new CommonValidator<TSource>(predicates);
+            
+            return new CommonValidator<TSource>(this.GetRules().ToList());
         }
 
     }
 
     public abstract class BaseRule<TSource> {
 
+        protected Predicate<TSource> predicate;
+
+        protected BaseRule(Predicate<TSource> predicate) {
+            this.predicate = predicate;
+        }
+
+        public abstract bool Test(TSource source);
+
     }
 
     public class SimpleRule<TSource> : BaseRule<TSource> {
+        
+        public SimpleRule(Predicate<TSource> predicate)
+            : base(predicate) { }
 
+        public override bool Test(TSource source) {
+            return predicate(source);
+        }
     }
 
     public class DatabaseRule<TSource> : BaseRule<TSource> {
+
+        public DatabaseRule(Predicate<TSource> predicate) : base(predicate) {
+        }
+
+        public override bool Test(TSource source) {
+            throw new NotImplementedException();
+        }
 
     }
 }
