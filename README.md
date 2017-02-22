@@ -15,3 +15,8 @@ Tool for constructing entity validation rules using predicates in a builder patt
 
             v.Validate(majesticTestingString);  // => TRUE
 ```
+
+Database rules are not really working yet:
+```C#
+.AddDatabaseRule((q, s) => !q.Contains(s))
+```
