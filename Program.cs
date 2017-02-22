@@ -7,86 +7,36 @@ using System.Threading.Tasks;
 namespace Validator {
 
     class Program {
-
+        
         static void Main(string[] args) {
 
+            string majesticTestingString = "Hello";
 
-            var v = new CommonValidatorBuilder<string>()
-                                    .AddRule(s => s.Length < 10)
-                                    .AddRule(s => s.Length > 0)
+            
+            CommonValidator<string> v = new CommonValidatorBuilder<string>()
+                                    .AddSimpleRule(s => s.Length < 10)
+                                    .AddSimpleRule(s => s.Length > 0)
+                                    .AddDatabaseRule((q, s) => !q.Contains(s))
                                     .Build();
-            
 
-            
+            v.Validate(majesticTestingString);  // => TRUE
+
+            int majesticTestingInt = 23;
+
+            Validators.NumberValidator.Validate(majesticTestingInt); // => FALSE
+
+            Console.ReadLine();
         }
     }
+    
+    
+    class Validators {
 
-    public class CommonValidator<TSource> {
+        //Prints "23 is not even", because the second rule isn't met
+        public static CommonValidator<int> NumberValidator => new CommonValidatorBuilder<int>()
+                                                            .AddSimpleRule(i => i < 100)
+                                                            .AddSimpleRule(i => i % 2 == 0, i => Console.WriteLine($"{i} is not even."))
+                                                            .Build();
 
-        private IList<BaseRule<TSource>> rules;
-
-        internal CommonValidator(IList<BaseRule<TSource>> predicates) {
-            this.rules = predicates;
-        } 
-        
-    }
-
-    public class CommonValidatorBuilder<TSource> {
-
-        private IList<Predicate<TSource>> predicates;
-
-        public CommonValidatorBuilder() {
-            this.predicates = new List<Predicate<TSource>>();
-        }
-
-        public CommonValidatorBuilder<TSource> AddRule(Predicate<TSource> predicate) {
-            this.predicates.Add(predicate);
-            return this;
-        }
-
-        private IEnumerable<BaseRule<TSource>> GetRules() {
-            foreach (var predicate in predicates) {
-                yield return new SimpleRule<TSource>(predicate);
-            }
-        }
-
-        public CommonValidator<TSource> Build() {
-            
-            return new CommonValidator<TSource>(this.GetRules().ToList());
-        }
-
-    }
-
-    public abstract class BaseRule<TSource> {
-
-        protected Predicate<TSource> predicate;
-
-        protected BaseRule(Predicate<TSource> predicate) {
-            this.predicate = predicate;
-        }
-
-        public abstract bool Test(TSource source);
-
-    }
-
-    public class SimpleRule<TSource> : BaseRule<TSource> {
-        
-        public SimpleRule(Predicate<TSource> predicate)
-            : base(predicate) { }
-
-        public override bool Test(TSource source) {
-            return predicate(source);
-        }
-    }
-
-    public class DatabaseRule<TSource> : BaseRule<TSource> {
-
-        public DatabaseRule(Predicate<TSource> predicate) : base(predicate) {
-        }
-
-        public override bool Test(TSource source) {
-            throw new NotImplementedException();
-        }
-
-    }
+    } 
 }
