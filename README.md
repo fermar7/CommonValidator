@@ -1,5 +1,5 @@
 # (C#) CommonValidator
-Tool for constructing entity validation rules using predicates in a builder pattern oriented style.
+Construct entity validation rules using anonymous functions in a builder pattern oriented style.
 
 
 ## Example:
